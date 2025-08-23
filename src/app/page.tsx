@@ -1,4 +1,15 @@
 import Image from "next/image";
+import type {Metadata, Viewport} from "next";
+
+export const metadata: Metadata = {
+  title: 'My Next.js PWA',
+  description: 'A progressive web app built with Next.js',
+  manifest: '/manifest.webmanifest', // Next serves app/manifest.ts here
+};
+
+export const viewport: Viewport = {
+  themeColor: '#111111',             // affects address bar on Android
+}
 
 export default function Home() {
   return (
