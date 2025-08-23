@@ -1,5 +1,6 @@
 import withPWA from 'next-pwa';
 import pkgJSON from './package.json' with {type: "json"};
+import nextPWACache from 'next-pwa/cache.js';
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -19,13 +20,22 @@ const nextConfig = {
 };
 
 export default withPWA({
-  dest: "public",         // destination directory for the PWA files
-  // disable: process.env.NODE_ENV === "development",        // disable PWA in the development environment
-  register: true,         // register the PWA service worker
-  skipWaiting: true,      // skip waiting for service worker activation
-  // You can uncomment to further tune:
-  // runtimeCaching: require('next-pwa/cache'),
-  fallbacks: { document: '/offline' }, // if you add an offline page
+  dest: "public",
+  disable: process.env.NODE_ENV === "development",
+  register: true,
+  skipWaiting: true,
+  runtimeCaching: nextPWACache,
+  buildExcludes: [
+    /middleware-manifest\.json$/, 
+    /_middleware\.js$/, 
+    /middleware\.js$/, 
+    /_buildManifest\.js$/, 
+    /_ssgManifest\.js$/, 
+    /app-build-manifest\.json$/,
+  ],
+  fallbacks: {
+    document: '/offline',
+  },
 })(nextConfig);
 
 // export default nextConfig;
