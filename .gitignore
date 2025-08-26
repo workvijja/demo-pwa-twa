@@ -42,3 +42,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# service worker
+public/sw.js
+public/workbox-*.js
+public/worker-*.js
+public/fallback-*.js

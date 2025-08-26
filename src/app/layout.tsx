@@ -2,6 +2,7 @@ import type {Metadata, Viewport} from "next";
 import "./globals.css";
 import {UpdateNotifier} from "@/components/utils/updateNotifier";
 import {Toaster} from "@/components/ui/sonner";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Demo PWA TWA",
@@ -30,7 +31,7 @@ export default function RootLayout({
     <html lang="en">
       <body>
         {children}
-        <UpdateNotifier />
+        <UpdateNotifier/>
         <Toaster/>
       </body>
     </html>
