@@ -5,6 +5,7 @@ import {Button} from "@/components/ui/button";
 import type {MotionValue} from "motion/react";
 import {animate, motion as m, useAnimate, useMotionValue, useTransform} from "motion/react";
 import useSound from "use-sound";
+import {Input} from "@/components/ui/input";
 
 const BREATH_DURATION = 4;
 
@@ -32,7 +33,29 @@ const useZenSound = () => {
   return useSound('/sounds/zen.mp3', {interrupt: true});
 }
 
-const Countdown = ({duration, progress}: {duration: number, progress: MotionValue<number>}) => {
+const CustomVibrate = ({className}: {className?: string}) => {
+  return (
+    <div className={className}>
+      <h3 className={"mb-2"}>Test Custom Vibrate</h3>
+      <form
+        className="flex items-center gap-2"
+        onSubmit={(e) => {
+          e.preventDefault();
+          const t = e.currentTarget.pattern.value;
+          console.log(t.split(',').map(Number))
+          vibrate(t.split(',').map(Number))
+        }}
+      >
+        <Input name={"pattern"} placeholder={"ex. 500 or 500,100"}/>
+        <Button type="submit">
+          Vibrate
+        </Button>
+      </form>
+    </div>
+  )
+}
+
+const Countdown = ({duration, progress}: { duration: number, progress: MotionValue<number> }) => {
   const remainingSeconds = useTransform(progress, (latest) => {
     return Math.ceil(duration - latest * duration)
   })
@@ -95,6 +118,8 @@ export default function Home() {
       <div className="text-center space-y-8 max-w-md w-full">
         <h1 className="text-4xl font-bold mb-8">Breathing Exercise</h1>
 
+        <CustomVibrate className={"mb-8"}/>
+
         <div className="relative flex justify-center items-center h-64">
           <m.div
             ref={elScope}
@@ -103,7 +128,8 @@ export default function Home() {
           >
             <div className="text-center">
               <p className="text-2xl font-bold capitalize">{BREATH_CYCLES_LABEL[breathStateIndex]}</p>
-              <p className="text-sm mt-2">Remaining seconds: <Countdown duration={BREATH_DURATION} progress={progress}/></p>
+              <p className="text-sm mt-2">Remaining seconds: <Countdown duration={BREATH_DURATION} progress={progress}/>
+              </p>
             </div>
           </m.div>
         </div>
