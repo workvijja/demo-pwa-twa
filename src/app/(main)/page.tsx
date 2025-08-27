@@ -19,8 +19,8 @@ const BREATH_CYCLES_LABEL = ['Inhale', 'Hold', 'Exhale', 'Hold'] as const;
 const BREATH_CYCLES_VIBRATION_PATTERN = [
   [100, 200, 400],
   [300, 50, 300],
-  [200, 100, 100],
-  [400, 200, 100]
+  [400, 200, 100],
+  [300, 50, 300]
 ]
 
 const vibrate = (pattern: number[]) => {
