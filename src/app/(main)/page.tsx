@@ -2,33 +2,35 @@
 
 import {useEffect, useState} from "react";
 import {Button} from "@/components/ui/button";
-import {
-  animate,
-  AnimationSequence,
-  motion as m,
-  useAnimate,
-  useMotionValue,
-  useMotionValueEvent,
-  useTransform
-} from "motion/react";
 import type {MotionValue} from "motion/react";
+import {animate, motion as m, useAnimate, useMotionValue, useTransform} from "motion/react";
+import useSound from "use-sound";
 
 const BREATH_DURATION = 4;
-
-// const BREATH_CYCLES = {
-//   inhale: {scale: 1.2, duration: BREATH_DURATION},
-//   hold: {scale: 1.2, duration: BREATH_DURATION},
-//   exhale: {scale: 0.8, duration: BREATH_DURATION},
-//   "hold-exhale": {scale: 0.8, duration: BREATH_DURATION},
-// };
 
 const BREATH_CYCLES = ['inhale', 'hold', 'exhale', 'hold-exhale'] as const;
 
 const SCALE_CONFIG = [1.2, 1.2, 0.8, 0.8];
 
-const BREATH_STATES_LABEL = ['Inhale', 'Hold', 'Exhale', 'Hold'] as const;
+const BREATH_CYCLES_LABEL = ['Inhale', 'Hold', 'Exhale', 'Hold'] as const;
 
 // type BreathState = typeof BREATH_CYCLES[number];
+
+const BREATH_CYCLES_VIBRATION_PATTERN = [
+  [100, 200, 400],
+  [300, 50, 300],
+  [200, 100, 100],
+  [400, 200, 100]
+]
+
+const vibrate = (pattern: number[]) => {
+  if (!navigator.vibrate) return;
+  navigator.vibrate(pattern);
+}
+
+const useZenSound = () => {
+  return useSound('/sounds/zen.mp3', {interrupt: true});
+}
 
 const Countdown = ({duration, progress}: {duration: number, progress: MotionValue<number>}) => {
   const remainingSeconds = useTransform(progress, (latest) => {
@@ -45,6 +47,7 @@ export default function Home() {
   const [breathStateIndex, setBreathStateIndex] = useState<number>(0);
   const progress = useMotionValue(0);
   const [elScope, animateEl] = useAnimate();
+  const [playZenSound] = useZenSound();
 
   const startBreathing = () => {
     if (isRunning) return;
@@ -76,6 +79,10 @@ export default function Home() {
       duration: BREATH_DURATION,
       ease: 'easeInOut'
     })
+    if (breathStateIndex === 0) {
+      playZenSound();
+    }
+    vibrate(BREATH_CYCLES_VIBRATION_PATTERN[breathStateIndex]);
     return () => {
       controls.stop();
       elControls.stop();
@@ -95,7 +102,7 @@ export default function Home() {
             initial={{scale: 1}}
           >
             <div className="text-center">
-              <p className="text-2xl font-bold capitalize">{BREATH_STATES_LABEL[breathStateIndex]}</p>
+              <p className="text-2xl font-bold capitalize">{BREATH_CYCLES_LABEL[breathStateIndex]}</p>
               <p className="text-sm mt-2">Remaining seconds: <Countdown duration={BREATH_DURATION} progress={progress}/></p>
             </div>
           </m.div>
