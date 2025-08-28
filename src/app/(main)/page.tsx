@@ -25,8 +25,12 @@ const BREATH_CYCLES_VIBRATION_PATTERN = [
 ]
 
 const vibrate = (pattern: number[]) => {
-  if (!navigator.vibrate) return;
-  navigator.vibrate(pattern);
+  try {
+    if (!navigator.vibrate) return;
+    navigator.vibrate(pattern);
+  } catch (e) {
+    console.error(e);
+  }
 }
 
 const useZenSound = () => {
