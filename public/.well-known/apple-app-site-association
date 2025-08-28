@@ -1,0 +1,15 @@
+{
+  "applinks": {
+      "apps": [],
+      "details": [
+          {
+              "appID": "XXX.tech.blsky.gv",
+              "paths": ["*"]
+          },
+          {
+              "appID": "XXX.tech.blsky.gv.dev",
+              "paths": ["*"]
+          }
+      ]
+  }
+}

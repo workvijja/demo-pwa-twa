@@ -1,0 +1,26 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "tech.android_app.gv",
+      "package_name": "tech.blsky.gv",
+      "sha256_cert_fingerprints": [
+        "4F:96:3F:CE:DB:B9:C3:36:52:1C:67:43:DB:45:0D:61:96:7B:A3:13:80:70:C3:FD:51:01:51:AF:A2:34:E6:B7"
+      ]
+    }
+  },
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "tech.blsky.gv.dev",
+      "sha256_cert_fingerprints": [
+        "4F:96:3F:CE:DB:B9:C3:36:52:1C:67:43:DB:45:0D:61:96:7B:A3:13:80:70:C3:FD:51:01:51:AF:A2:34:E6:B7"
+      ]
+    }
+  }
+]

@@ -118,7 +118,7 @@ export default function Home() {
 
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-4">
+    <div className={"mx-auto w-fit"}>
       <div className="text-center space-y-8 max-w-md w-full">
         <h1 className="text-4xl font-bold mb-8">Breathing Exercise</h1>
 
@@ -164,6 +164,6 @@ export default function Home() {
           <p>Hold for 4 seconds</p>
         </div>
       </div>
-    </main>
+    </div>
   );
 }
