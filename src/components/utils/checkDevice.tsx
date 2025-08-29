@@ -31,7 +31,7 @@ export default function CheckDevice({children}: {children: React.ReactNode}) {
     }
 
     const checkMessage = (e: MessageEvent) => {
-      if (e.data !== process.env.NEXT_PUBLIC_FLUTTER_SECRET_MESSAGE) {
+      if (e.data !== process.env.NEXT_PUBLIC_FLUTTER_MESSAGE) {
         console.error('Invalid message received')
         router.replace('/download');
         return;
