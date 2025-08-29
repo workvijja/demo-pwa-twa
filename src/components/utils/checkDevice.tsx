@@ -31,6 +31,8 @@ export default function CheckDevice({children}: {children: React.ReactNode}) {
       window.postMessage(message, '*');
     }
 
+    window.pwaToFlutterChannel?.(process.env.NEXT_PUBLIC_FLUTTER_MESSAGE || '');
+
     const checkMessage = (e: MessageEvent) => {
       if (e.data !== process.env.NEXT_PUBLIC_FLUTTER_MESSAGE) {
         console.error('Invalid message received')
