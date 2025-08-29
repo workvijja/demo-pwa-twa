@@ -2,11 +2,13 @@
 
 import {useEffect, useRef, useState} from "react";
 import {useRouter} from "next/navigation";
+import {useFlutterBridge} from "@/provider/flutterBridgeProvider";
 
 export default function CheckDevice({children}: {children: React.ReactNode}) {
   const [permit, setPermit] = useState(false);
   const router = useRouter();
   const timeoutRef = useRef<NodeJS.Timeout>(null);
+  const {isReady, callHandler} = useFlutterBridge();
 
   useEffect(() => {
     if (process.env.NODE_ENV === "development") {
@@ -19,7 +21,6 @@ export default function CheckDevice({children}: {children: React.ReactNode}) {
       return;
     }
 
-    const channelName = process.env.NEXT_PUBLIC_FLUTTER_CHANNEL_NAME || 'pwaToFlutterChannel';
     const expectedUserAgent = process.env.NEXT_PUBLIC_FLUTTER_USER_AGENT || 'flutter_x_pwa';
 
     if (navigator.userAgent !== expectedUserAgent) {
@@ -27,35 +28,33 @@ export default function CheckDevice({children}: {children: React.ReactNode}) {
       return;
     }
 
-    window.flutterToPwaChannel = (message: string) => {
-      window.postMessage(message, '*');
-    }
+    // Only proceed if Flutter bridge is ready
+    if (!isReady) return;
 
-    window.pwaToFlutterChannel?.(process.env.NEXT_PUBLIC_FLUTTER_MESSAGE || '');
+    const checkFlutterResponse = async () => {
+      try {
+        const response = await Promise.race([
+          callHandler('pwaToFlutterChannel'),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Timeout')), 10 * 1000)
+          )
+        ]) as { status: string; message: string };
 
-    const checkMessage = (e: MessageEvent) => {
-      if (e.data !== process.env.NEXT_PUBLIC_FLUTTER_MESSAGE) {
-        console.error('Invalid message received')
+        if (response?.status === 'success') {
+          if (timeoutRef.current) clearTimeout(timeoutRef.current);
+          setPermit(true);
+        } else {
+          console.error('Invalid response status:', response?.status);
+          router.replace('/download');
+        }
+      } catch (error) {
+        console.error('Error calling pwaToFlutterChannel:', error);
         router.replace('/download');
-        return;
       }
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-      setPermit(true);
-    }
-
-    window.addEventListener('message', checkMessage);
-    timeoutRef.current = setTimeout(() => {
-      console.error('Timeout: Flutter message not received');
-      router.replace('/download');
-      window.removeEventListener('message', checkMessage);
-      setPermit(false); // Optional: Set permit to false when timeout occurs
-    }, 10 * 1000);
-
-    return () => {
-      window.removeEventListener('message', checkMessage);
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
-  }, []);
+
+    checkFlutterResponse();
+  }, [isReady]);
 
   if (!permit) return null;
 
