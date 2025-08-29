@@ -21,12 +21,12 @@ export default function CheckDevice({children}: {children: React.ReactNode}) {
     const channelName = process.env.NEXT_PUBLIC_FLUTTER_CHANNEL_NAME || 'pwaToFlutterChannel';
     const expectedUserAgent = process.env.NEXT_PUBLIC_FLUTTER_USER_AGENT || 'flutter_x_pwa';
 
-    // if (!(channelName in window)) {
-    //   router.replace('/download');
-    //   return;
-    // }
-
     if (navigator.userAgent !== expectedUserAgent) {
+      router.replace('/download');
+      return;
+    }
+
+    if (!(channelName in window)) {
       router.replace('/download');
       return;
     }
