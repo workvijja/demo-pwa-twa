@@ -5,5 +5,6 @@ declare global {
     pwaToFlutterChannel?: {
       postMessage: (message: any) => void;
     };
+    flutterToPwaChannel?: (message: string) => void;
   }
 }
