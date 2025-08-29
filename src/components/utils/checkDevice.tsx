@@ -1,11 +1,12 @@
 "use client"
 
-import {useEffect, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 import {useRouter} from "next/navigation";
 
 export default function CheckDevice({children}: {children: React.ReactNode}) {
   const [permit, setPermit] = useState(false);
   const router = useRouter();
+  const timeoutRef = useRef<NodeJS.Timeout>(null);
 
   useEffect(() => {
     if (process.env.NODE_ENV === "development") {
@@ -36,11 +37,12 @@ export default function CheckDevice({children}: {children: React.ReactNode}) {
         router.replace('/download');
         return;
       }
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
       setPermit(true);
     }
 
     window.addEventListener('message', checkMessage);
-    const timeoutId = setTimeout(() => {
+    timeoutRef.current = setTimeout(() => {
       console.error('Timeout: Flutter message not received');
       router.replace('/download');
       window.removeEventListener('message', checkMessage);
@@ -49,7 +51,7 @@ export default function CheckDevice({children}: {children: React.ReactNode}) {
 
     return () => {
       window.removeEventListener('message', checkMessage);
-      clearTimeout(timeoutId);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
   }, []);
 
