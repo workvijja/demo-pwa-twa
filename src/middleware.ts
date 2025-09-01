@@ -20,9 +20,9 @@ export function middleware(request: NextRequest) {
   }
 
   // If user agent doesn't match, redirect to download page
-  if (userAgent !== expectedUserAgent) {
-    return NextResponse.redirect(new URL('/download', request.url));
-  }
+  // if (userAgent !== expectedUserAgent) {
+  //   return NextResponse.redirect(new URL('/download', request.url));
+  // }
 
   return NextResponse.next();
 }

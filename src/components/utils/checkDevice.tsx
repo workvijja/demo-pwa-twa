@@ -21,12 +21,12 @@ export default function CheckDevice({children}: {children: React.ReactNode}) {
       return;
     }
 
-    const expectedUserAgent = process.env.NEXT_PUBLIC_FLUTTER_USER_AGENT || 'flutter_x_pwa';
-
-    if (navigator.userAgent !== expectedUserAgent) {
-      router.replace('/download');
-      return;
-    }
+    // const expectedUserAgent = process.env.NEXT_PUBLIC_FLUTTER_USER_AGENT || 'flutter_x_pwa';
+    //
+    // if (navigator.userAgent !== expectedUserAgent) {
+    //   router.replace('/download');
+    //   return;
+    // }
 
     // Only proceed if Flutter bridge is ready
     if (!isReady) return;
