@@ -21,56 +21,60 @@ export function useServiceWorkerUpdate() {
   }, [waiting, registration, isDev]);
 
   useEffect(() => {
-    // Only run in the browser
-    if (typeof window === 'undefined' || isDev) {
-      console.log('Skipping service worker update in development mode');
-      return;
-    }
+    try {
+      // Only run in the browser
+      if (typeof window === 'undefined' || isDev) {
+        console.log('Skipping service worker update in development mode');
+        return;
+      }
 
-    if ('serviceWorker' in navigator) {
-      const wb = new Workbox('/sw.js');
+      if ('serviceWorker' in navigator) {
+        const wb = new Workbox('/sw.js');
 
-      const onWaiting = () => {
-        console.log('A new service worker is waiting to activate');
-        if (wb && wb.getSW) {
-          wb.getSW().then(sw => {
-            console.log('New service worker found:', sw);
-            setWaiting(sw);
+        const onWaiting = () => {
+          console.log('A new service worker is waiting to activate');
+          if (wb && wb.getSW) {
+            wb.getSW().then(sw => {
+              console.log('New service worker found:', sw);
+              setWaiting(sw);
+            });
+          }
+        };
+
+        const onControlling = () => {
+          console.log('New service worker is controlling the page');
+          window.location.reload();
+        };
+
+        wb.addEventListener('waiting', onWaiting);
+        wb.addEventListener('controlling', onControlling);
+
+        // Register the service worker
+        wb.register().then(reg => {
+          console.log('Service worker registered:', reg);
+          setRegistration(reg!);
+
+          // Check for updates immediately
+          reg?.update().then(() => {
+            console.log('Checked for service worker update');
           });
-        }
-      };
-
-      const onControlling = () => {
-        console.log('New service worker is controlling the page');
-        window.location.reload();
-      };
-
-      wb.addEventListener('waiting', onWaiting);
-      wb.addEventListener('controlling', onControlling);
-
-      // Register the service worker
-      wb.register().then(reg => {
-        console.log('Service worker registered:', reg);
-        setRegistration(reg!);
-        
-        // Check for updates immediately
-        reg?.update().then(() => {
-          console.log('Checked for service worker update');
         });
-      });
 
-      // Check for updates every hour
-      const updateInterval = setInterval(() => {
-        if (registration) {
-          registration.update().catch(console.error);
-        }
-      }, 60 * 60 * 1000);
+        // Check for updates every hour
+        const updateInterval = setInterval(() => {
+          if (registration) {
+            registration.update().catch(console.error);
+          }
+        }, 60 * 60 * 1000);
 
-      return () => {
-        wb.removeEventListener('waiting', onWaiting);
-        wb.removeEventListener('controlling', onControlling);
-        clearInterval(updateInterval);
-      };
+        return () => {
+          wb.removeEventListener('waiting', onWaiting);
+          wb.removeEventListener('controlling', onControlling);
+          clearInterval(updateInterval);
+        };
+      }
+    } catch(e: Error) {
+      console.error(e.message);
     }
   }, [isDev, registration]);
 

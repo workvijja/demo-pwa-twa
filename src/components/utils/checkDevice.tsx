@@ -7,7 +7,7 @@ import {useFlutterBridge} from "@/provider/flutterBridgeProvider";
 export default function CheckDevice({children}: {children: React.ReactNode}) {
   const [permit, setPermit] = useState(false);
   const router = useRouter();
-  const timeoutRef = useRef<NodeJS.Timeout>(null);
+  // const timeoutRef = useRef<NodeJS.Timeout>(null);
   const {isReady, callHandler} = useFlutterBridge();
 
   useEffect(() => {
@@ -21,12 +21,12 @@ export default function CheckDevice({children}: {children: React.ReactNode}) {
       return;
     }
 
-    // const expectedUserAgent = process.env.NEXT_PUBLIC_FLUTTER_USER_AGENT || 'flutter_x_pwa';
-    //
-    // if (navigator.userAgent !== expectedUserAgent) {
-    //   router.replace('/download');
-    //   return;
-    // }
+    const expectedUserAgent = process.env.NEXT_PUBLIC_FLUTTER_USER_AGENT || 'flutter_x_pwa';
+
+    if (navigator.userAgent !== expectedUserAgent) {
+      router.replace('/download');
+      return;
+    }
 
     // Only proceed if Flutter bridge is ready
     if (!isReady) return;
@@ -41,7 +41,7 @@ export default function CheckDevice({children}: {children: React.ReactNode}) {
         ]) as { status: string; message: string };
 
         if (response?.status === 'success') {
-          if (timeoutRef.current) clearTimeout(timeoutRef.current);
+          // if (timeoutRef.current) clearTimeout(timeoutRef.current);
           setPermit(true);
         } else {
           console.error('Invalid response status:', response?.status);
@@ -56,7 +56,9 @@ export default function CheckDevice({children}: {children: React.ReactNode}) {
     checkFlutterResponse();
   }, [isReady]);
 
-  if (!permit) return null;
+  if (!permit) return (
+    <div>Checking device...</div>
+  );
 
   return children;
 }
