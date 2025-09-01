@@ -13,6 +13,7 @@ export const FlutterBridgeProvider: React.FC<{ children: React.ReactNode }> = ({
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     // Already available?
     if (window.flutter_inappwebview) {
       setIsReady(true);

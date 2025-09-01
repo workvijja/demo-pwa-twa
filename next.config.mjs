@@ -7,7 +7,7 @@ const nextConfig = {
     reactStrictMode: true,
     // swcMinify: true,
     compiler: {
-        removeConsole: process.env.NODE_ENV === "production"
+        // removeConsole: process.env.NODE_ENV === "production"
     },
     env: {
         NEXT_PUBLIC_APP_VERSION: pkgJSON.version,
