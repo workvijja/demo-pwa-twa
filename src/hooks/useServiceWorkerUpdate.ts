@@ -74,7 +74,7 @@ export function useServiceWorkerUpdate() {
         };
       }
     } catch(e) {
-      console.error(e.message);
+      console.error(e);
     }
   }, [isDev, registration]);
 
