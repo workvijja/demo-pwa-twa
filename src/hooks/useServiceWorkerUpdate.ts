@@ -73,7 +73,7 @@ export function useServiceWorkerUpdate() {
           clearInterval(updateInterval);
         };
       }
-    } catch(e: Error) {
+    } catch(e) {
       console.error(e.message);
     }
   }, [isDev, registration]);
