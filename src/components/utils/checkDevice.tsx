@@ -3,6 +3,7 @@
 import {useEffect, useRef, useState} from "react";
 import {useRouter} from "next/navigation";
 import {useFlutterBridge} from "@/provider/flutterBridgeProvider";
+import {Loader2} from "lucide-react";
 
 export default function CheckDevice({children}: {children: React.ReactNode}) {
   const [permit, setPermit] = useState(false);
@@ -57,7 +58,9 @@ export default function CheckDevice({children}: {children: React.ReactNode}) {
   }, [isReady]);
 
   if (!permit) return (
-    <div>Checking device...</div>
+    <div className="w-screen h-dvh flex items-center justify-center">
+      <Loader2 className="size-12 animate-spin"/>
+    </div>
   );
 
   return children;
