@@ -1,6 +1,6 @@
 'use client';
 
-import {useEffect, useState} from 'react';
+import {useState} from 'react';
 import {Avatar, AvatarFallback, AvatarImage} from '@/components/ui/avatar';
 import {Button} from '@/components/ui/button';
 import {
@@ -21,16 +21,10 @@ import {
   DrawerDescription,
   DrawerFooter,
   DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger
+  DrawerTitle
 } from "@/components/ui/drawer";
-import { useLocalStorage } from "@uidotdev/usehooks";
+import type {UserData} from "@/provider/authProvider";
 
-type ProfileData = {
-  username: string;
-  email: string;
-  avatar: string;
-};
 
 const getInitials = (name: string) => {
   return name
@@ -40,25 +34,9 @@ const getInitials = (name: string) => {
     .toUpperCase();
 };
 
-const ProfileForm = ({onSuccess}: {onSuccess: () => void}) => {
-  const [profile, setProfile] = useLocalStorage<ProfileData>("userProfile", {
-    username: 'Guest User',
-    email: 'guest@example.com',
-    avatar: '',
-  });
-  const [editData, setEditData] = useState<ProfileData>({ ...profile });
-  const [avatarPreview, setAvatarPreview] = useState('');
-
-  // Load profile from localStorage on component mount
-  useEffect(() => {
-    const savedProfile = localStorage.getItem('userProfile');
-    if (savedProfile) {
-      const parsedProfile = JSON.parse(savedProfile);
-      setProfile(parsedProfile);
-      setEditData(parsedProfile);
-      setAvatarPreview(parsedProfile.avatar);
-    }
-  }, []);
+const ProfileForm = ({user, onSuccess}: {user: UserData, onSuccess: (data: UserData) => void}) => {
+  const [editData, setEditData] = useState<UserData>({ ...user });
+  const [avatarPreview, setAvatarPreview] = useState(user.avatar);
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -82,9 +60,7 @@ const ProfileForm = ({onSuccess}: {onSuccess: () => void}) => {
       email: editData.email || 'guest@example.com',
     };
 
-    setProfile(updatedProfile);
-    localStorage.setItem('userProfile', JSON.stringify(updatedProfile));
-    onSuccess();
+    onSuccess(updatedProfile);
   };
 
   return (
@@ -99,8 +75,8 @@ const ProfileForm = ({onSuccess}: {onSuccess: () => void}) => {
         <div className="flex flex-col items-center gap-4">
           <div className="relative">
             <Avatar className="h-20 w-20">
-              {avatarPreview || profile.avatar ? (
-                <AvatarImage src={avatarPreview || profile.avatar} alt="Profile" className="object-cover"/>
+              {avatarPreview || user.avatar ? (
+                <AvatarImage src={avatarPreview || user.avatar} alt="Profile" className="object-cover"/>
               ) : (
                 <AvatarFallback>{getInitials(editData.username)}</AvatarFallback>
               )}
@@ -180,13 +156,8 @@ const ProfileForm = ({onSuccess}: {onSuccess: () => void}) => {
 )
 }
 
-export default function ProfileDropdown() {
+export default function ProfileDropdown({user, logout, changeProfile}: {user: UserData, logout: () => void, changeProfile: (profile: UserData) => void}) {
   const [isEditOpen, setIsEditOpen] = useState(false);
-  const [profile] = useLocalStorage<ProfileData>("userProfile", {
-    username: 'Guest User',
-    email: 'guest@example.com',
-    avatar: '',
-  })
 
   return (
     <>
@@ -194,10 +165,10 @@ export default function ProfileDropdown() {
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="relative h-8 w-8 rounded-full">
             <Avatar className="h-8 w-8">
-              {profile.avatar ? (
-                <AvatarImage src={profile.avatar} alt={profile.username}/>
+              {user.avatar ? (
+                <AvatarImage src={user.avatar} alt={user.username} className={"object-cover"}/>
               ) : (
-                <AvatarFallback>{getInitials(profile.username)}</AvatarFallback>
+                <AvatarFallback>{getInitials(user.username)}</AvatarFallback>
               )}
             </Avatar>
           </Button>
@@ -205,23 +176,32 @@ export default function ProfileDropdown() {
         <DropdownMenuContent className="w-56" align="end" forceMount>
           <DropdownMenuLabel className="font-normal">
             <div className="flex flex-col space-y-1">
-              <p className="text-sm font-medium leading-none">{profile.username}</p>
+              <p className="text-sm font-medium leading-none">{user.username}</p>
               <p className="text-xs leading-none text-muted-foreground">
-                {profile.email}
+                {user.email}
               </p>
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator/>
           <DropdownMenuGroup>
             <DropdownMenuItem onClick={() => setIsEditOpen(true)}>
-                Edit Profile
+              Edit Profile
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={logout}>
+              Log out
             </DropdownMenuItem>
           </DropdownMenuGroup>
         </DropdownMenuContent>
       </DropdownMenu>
       <Drawer open={isEditOpen} onOpenChange={setIsEditOpen}>
         <DrawerContent forceMount>
-          <ProfileForm onSuccess={() => setIsEditOpen(false)}/>
+          <ProfileForm
+            user={user}
+            onSuccess={(data: UserData) => {
+              changeProfile(data)
+              setIsEditOpen(false)
+            }}
+          />
         </DrawerContent>
       </Drawer>
     </>

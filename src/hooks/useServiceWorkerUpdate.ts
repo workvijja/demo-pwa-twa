@@ -41,13 +41,13 @@ export function useServiceWorkerUpdate() {
           }
         };
 
-        const onControlling = () => {
-          console.log('New service worker is controlling the page');
-          window.location.reload();
-        };
+        // const onControlling = () => {
+        //   console.log('New service worker is controlling the page');
+        //   window.location.reload();
+        // };
 
         wb.addEventListener('waiting', onWaiting);
-        wb.addEventListener('controlling', onControlling);
+        // wb.addEventListener('controlling', onControlling);
 
         // Register the service worker
         wb.register().then(reg => {
@@ -69,7 +69,7 @@ export function useServiceWorkerUpdate() {
 
         return () => {
           wb.removeEventListener('waiting', onWaiting);
-          wb.removeEventListener('controlling', onControlling);
+          // wb.removeEventListener('controlling', onControlling);
           clearInterval(updateInterval);
         };
       }
