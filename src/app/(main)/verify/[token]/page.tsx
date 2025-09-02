@@ -1,10 +1,13 @@
-import { notFound } from 'next/navigation';
+import {notFound} from 'next/navigation';
 
-export default function VerifyPage({
-  params,
+export default async function VerifyPage({
+ params,
 }: {
-  params: { token: string };
+  params: Promise<{ token: string }>;
 }) {
+  const {token} = await params;
+
+  console.log(token)
   // In a real app, you would validate the token here
   const isValidToken = true; // Replace with actual token validation
 
