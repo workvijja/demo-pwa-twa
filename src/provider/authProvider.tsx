@@ -1,6 +1,8 @@
 // context/AuthContext.tsx
 "use client";
 import { createContext, useContext, useState, useEffect } from "react";
+import api from "@/lib/axios";
+import {AxiosError, AxiosResponse} from "axios";
 
 export type UserData = {
   username: string;
@@ -21,6 +23,20 @@ export const defaultUser: UserData = {
   avatar: ""
 }
 
+type APIResponse<T, M = unknown> = {
+  data: T;
+  message: string;
+  code: string;
+  meta?: M;
+}
+
+type LoginData = {
+  access_token: string;
+  refresh_token: string;
+}
+
+type APIError = APIResponse<null> & {error: string};
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -32,12 +48,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem("userProfile", JSON.stringify(defaultUser));
   }, []);
 
-  const login = () => {
-    const data = JSON.parse(localStorage.getItem("userProfile") || "{}");
-    setUser(data);
+  const login = async () => {
+    try {
+      const {data: {data: {access_token, refresh_token}}} = await api.post<'',AxiosResponse<APIResponse<LoginData>>, AxiosError<APIError>>("/api/v1/public/auth/login");
+      localStorage.setItem("token", access_token);
+      localStorage.setItem("refresh_token", refresh_token);
+      const data = JSON.parse(localStorage.getItem("userProfile") || "{}");
+      setUser(data);
+    } catch(e) {
+      console.error(e);
+    }
   };
 
   const logout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("refresh_token");
     setUser(null);
     // localStorage.removeItem("mockUser");
   };

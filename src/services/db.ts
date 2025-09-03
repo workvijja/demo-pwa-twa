@@ -22,25 +22,25 @@ class DB extends Dexie {
 export const db = new DB();
 
 // Initialize some sample data
-export async function initDB() {
-  const count = await db.todos.count();
-  if (count === 0) {
-    await db.todos.bulkAdd([
-      {
-        title: 'Learn Next.js',
-        completed: false,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-      {
-        title: 'Build a PWA',
-        completed: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-    ]);
-  }
-}
+// export async function initDB() {
+//   const count = await db.todos.count();
+//   if (count === 0) {
+//     await db.todos.bulkAdd([
+//       {
+//         title: 'Learn Next.js',
+//         completed: false,
+//         createdAt: new Date(),
+//         updatedAt: new Date(),
+//       },
+//       {
+//         title: 'Build a PWA',
+//         completed: true,
+//         createdAt: new Date(),
+//         updatedAt: new Date(),
+//       },
+//     ]);
+//   }
+// }
 
 // Initialize the database when this module is loaded
-initDB().catch(console.error);
+// initDB().catch(console.error);
