@@ -1,5 +1,14 @@
 import axios from "axios";
 
+export type APIResponse<T, M = unknown> = {
+  data: T;
+  message: string;
+  code: string;
+  meta?: M;
+}
+
+export type APIError = APIResponse<null> & {error: string};
+
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
   // withCredentials: true, // if your API uses cookies too
@@ -47,9 +56,8 @@ api.interceptors.response.use(
   },
   async (error) => {
     const originalRequest = error.config;
-
     // Token expired → try refresh
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && !originalRequest._retry && !originalRequest.url.includes("/api/v1/public")) {
       if (isRefreshing) {
         return new Promise(function (resolve, reject) {
           failedQueue.push({ resolve, reject });

@@ -1,16 +1,13 @@
 "use client"
 
 import {Button} from "@/components/ui/button";
-import {useAuth} from "@/provider/authProvider";
-import dynamic from "next/dynamic";
-import {Skeleton} from "@/components/ui/skeleton";
 import {useRouter} from "next/navigation";
 import {ArrowLeft, Home} from "lucide-react";
-
-const ProfileDropdown = dynamic(
-  () => import("@/components/profile/ProfileDropdown"),
-  {ssr: false, loading: () => <Skeleton className="size-8 rounded-full"/>}
-);
+import useAuth from "@/hooks/auth/useAuth";
+import RegisterForm from "@/components/auth/registerForm";
+import ProfileDropdown from "@/components/profile/ProfileDropdown";
+import {DropdownMenuItem} from "@/components/ui/dropdown-menu";
+import LoginForm from "@/components/auth/loginForm";
 
 const BackButton = ({className}: {className?: string}) => {
   const router = useRouter();
@@ -34,19 +31,38 @@ const HomeButton = ({className}: {className?: string}) => {
 }
 
 export default function Header() {
-  const {user, login, logout, changeProfile} = useAuth();
+  const {isLoggedIn, logout} = useAuth();
 
   return (
     <header
       className="sticky top-0 left-0 right-0 z-10 h-17 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b"
     >
-      <nav className="p-4 flex gap-4 items-center">
+      <nav className="p-4 flex gap-2 items-center">
         <HomeButton />
         <BackButton className={"mr-auto"}/>
-        {user ?
-          <ProfileDropdown user={user} logout={logout} changeProfile={changeProfile}/>
+        {isLoggedIn ?
+          <ProfileDropdown>
+            <DropdownMenuItem
+              onClick={() => {
+                logout();
+              }}
+            >
+              Log out
+            </DropdownMenuItem>
+          </ProfileDropdown>
           :
-          <Button size="sm" onClick={login}>Login</Button>
+          <>
+            <RegisterForm
+              trigger={
+                <Button size="sm" variant="outline">Register</Button>
+              }
+            />
+            <LoginForm
+              trigger={
+                <Button size="sm">Login</Button>
+              }
+            />
+          </>
         }
       </nav>
     </header>
