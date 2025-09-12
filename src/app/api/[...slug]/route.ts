@@ -7,7 +7,7 @@ async function handler(req: NextRequest, { params }: { params: Promise<{ slug: s
   try {
     // Construct target URL with path + query
     const {slug} = await params;
-    const targetUrl = `${BACKEND_BASE}/${slug.join("/")}${req.nextUrl.search}`;
+    const targetUrl = `${BACKEND_BASE}/api/${slug.join("/")}${req.nextUrl.search}`;
 
     // Forward request to backend
     const backendRes = await fetch(targetUrl, {
