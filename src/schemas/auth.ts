@@ -12,13 +12,13 @@ export type User = z.infer<typeof userSchema>;
 export const getUserSchema = userSchema.omit({password: true});
 export type GetUser = z.infer<typeof getUserSchema>;
 
-export const createUserSchema = userSchema.clone()
+export const createUserSchema = userSchema.omit({id: true})
 export type CreateUser = z.infer<typeof createUserSchema>;
 
 export const updateUserSchema = userSchema.pick({username: true, avatar: true})
 export type UpdateUser = z.infer<typeof updateUserSchema>;
 
-export const registerSchema = userSchema.clone()
+export const registerSchema = userSchema.omit({id: true})
 export type RegisterUser = z.infer<typeof registerSchema>;
 
 export const loginSchema = userSchema.pick({email: true, password: true})
