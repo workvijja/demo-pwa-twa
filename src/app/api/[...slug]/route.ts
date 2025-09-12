@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 const BACKEND_BASE = "http://159.65.139.117:20000";
 
-export async function handler(req: NextRequest, { params }: { params: { path: string[] } }) {
+async function handler(req: NextRequest, { params }: { params: { path: string[] } }) {
   try {
     // Construct target URL with path + query
     const targetUrl = `${BACKEND_BASE}/${params.path.join("/")}${req.nextUrl.search}`;
@@ -32,5 +32,22 @@ export async function handler(req: NextRequest, { params }: { params: { path: st
   }
 }
 
+// Export handlers for all HTTP verbs
+export async function GET(req: NextRequest, opt: { params: { path: string[] } }) {
+  return handler(req, opt);
+}
+export async function POST(req: NextRequest, opt: { params: { path: string[] } }) {
+  return handler(req, opt);
+}
+export async function PUT(req: NextRequest, opt: { params: { path: string[] } }) {
+  return handler(req, opt);
+}
+export async function DELETE(req: NextRequest, opt: { params: { path: string[] } }) {
+  return handler(req, opt);
+}
+export async function PATCH(req: NextRequest, opt: { params: { path: string[] } }) {
+  return handler(req, opt);
+}
+
 // Export for all methods
-export { handler as GET, handler as POST, handler as PUT, handler as DELETE, handler as PATCH };
+// export { handler as GET, handler as POST, handler as PUT, handler as DELETE, handler as PATCH };
