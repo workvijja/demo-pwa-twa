@@ -3,10 +3,11 @@ import { NextRequest, NextResponse } from "next/server";
 
 const BACKEND_BASE = "http://159.65.139.117:20000";
 
-async function handler(req: NextRequest, { params }: { params: { path: string[] } }) {
+async function handler(req: NextRequest, { params }: { params: Promise<{ slug: string[] }> }) {
   try {
     // Construct target URL with path + query
-    const targetUrl = `${BACKEND_BASE}/${params.path.join("/")}${req.nextUrl.search}`;
+    const {slug} = await params;
+    const targetUrl = `${BACKEND_BASE}/${slug.join("/")}${req.nextUrl.search}`;
 
     // Forward request to backend
     const backendRes = await fetch(targetUrl, {
@@ -33,19 +34,19 @@ async function handler(req: NextRequest, { params }: { params: { path: string[] 
 }
 
 // Export handlers for all HTTP verbs
-export async function GET(req: NextRequest, opt: { params: { path: string[] } }) {
+export async function GET(req: NextRequest, opt: { params: Promise<{ slug: string[] }> }) {
   return handler(req, opt);
 }
-export async function POST(req: NextRequest, opt: { params: { path: string[] } }) {
+export async function POST(req: NextRequest, opt: { params: Promise<{ slug: string[] }> }) {
   return handler(req, opt);
 }
-export async function PUT(req: NextRequest, opt: { params: { path: string[] } }) {
+export async function PUT(req: NextRequest, opt: { params: Promise<{ slug: string[] }> }) {
   return handler(req, opt);
 }
-export async function DELETE(req: NextRequest, opt: { params: { path: string[] } }) {
+export async function DELETE(req: NextRequest, opt: { params: Promise<{ slug: string[] }> }) {
   return handler(req, opt);
 }
-export async function PATCH(req: NextRequest, opt: { params: { path: string[] } }) {
+export async function PATCH(req: NextRequest, opt: { params: Promise<{ slug: string[] }> }) {
   return handler(req, opt);
 }
 
