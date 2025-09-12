@@ -46,7 +46,7 @@ export const getToken = () => {
 
 export default function useAuth() {
   // const [token, setToken] = useLocalStorage("token", "");
-  const isLoggedIn = useSyncExternalStore(subscribeTokenChanges, getTokenExistSnapshot);
+  const isLoggedIn = useSyncExternalStore(subscribeTokenChanges, getTokenExistSnapshot, () => false);
 
   const queryClient = useQueryClient();
   const {mutate: login, status: loginStatus } = useMutation({

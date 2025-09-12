@@ -72,15 +72,15 @@ api.interceptors.response.use(
 
       try {
         // Call refresh endpoint
-        const { data } = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/public/auth/refresh`, {
+        const { data: {data: {access_token, refresh_token}} } = await axios.post<APIResponse<{access_token: string, refresh_token: string}>>(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/public/auth/refresh`, {
           refresh_token: localStorage.getItem("refreshToken"),
         });
 
-        localStorage.setItem("token", data.accessToken);
+        localStorage.setItem("token", access_token);
 
         // Update default headers
-        api.defaults.headers.common.Authorization = `Bearer ${data.accessToken}`;
-        processQueue(null, data.accessToken);
+        api.defaults.headers.common.Authorization = `Bearer ${access_token}`;
+        processQueue(null, access_token);
 
         // Retry the failed request
         return api(originalRequest);

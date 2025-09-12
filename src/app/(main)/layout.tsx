@@ -1,4 +1,4 @@
-"use client"
+// "use client"
 
 import CheckDevice from "@/components/utils/checkDevice";
 import {FlutterBridgeProvider} from "@/provider/flutterBridgeProvider";

@@ -1,6 +1,6 @@
 "use client"
 
-import {useEffect, useRef, useState} from "react";
+import {useEffect, useState} from "react";
 import {useRouter} from "next/navigation";
 import {useFlutterBridge} from "@/provider/flutterBridgeProvider";
 import {Loader2} from "lucide-react";
@@ -8,7 +8,6 @@ import {Loader2} from "lucide-react";
 export default function CheckDevice({children}: {children: React.ReactNode}) {
   const [permit, setPermit] = useState(false);
   const router = useRouter();
-  // const timeoutRef = useRef<NodeJS.Timeout>(null);
   const {isReady, callHandler} = useFlutterBridge();
 
   useEffect(() => {
@@ -59,7 +58,7 @@ export default function CheckDevice({children}: {children: React.ReactNode}) {
 
   if (!permit) return (
     <div className="w-screen h-dvh flex items-center justify-center">
-      <Loader2 className="size-12 animate-spin"/>
+      <Loader2 className="size-16 animate-spin"/>
     </div>
   );
 
