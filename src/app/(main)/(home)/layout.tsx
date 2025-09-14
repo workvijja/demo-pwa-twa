@@ -9,6 +9,7 @@ export default function HomeLayout({children}: {children: React.ReactNode}) {
         <nav className="px-4 py-2 flex gap-4 items-center">
           <Link href="/v1">V1</Link>
           <Link href="/v2">V2</Link>
+          <Link href="/todo">Todo</Link>
         </nav>
       </header>
       <main className="container mx-auto px-4 py-8">

@@ -4,14 +4,17 @@ import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {Check, Loader2, Pencil, Plus, Trash2, X} from 'lucide-react';
 import { addTodo, deleteTodo, getTodos, updateTodo } from "@/services/todoService";
+import {GetTodo} from "@/schemas/todo";
+import {APIResponse} from "@/lib/axios";
+import {LocalTodo} from "@/services/db";
 
-interface TodoItem {
-  id?: number;
-  title: string;
-  completed: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-}
+// interface TodoItem {
+//   id?: number;
+//   title: string;
+//   completed: boolean;
+//   createdAt: Date;
+//   updatedAt: Date;
+// }
 
 export default function TodoPage() {
   const [newTodo, setNewTodo] = useState('');
@@ -22,9 +25,9 @@ export default function TodoPage() {
   const queryClient = useQueryClient();
 
   // Fetch todos
-  const { data: todos = [], isLoading } = useQuery<TodoItem[]>({
+  const { data: todos = [], isLoading } = useQuery({
     queryKey: ['todos'],
-    queryFn: getTodos
+    queryFn: getTodos,
   });
 
   // Add to do mutation
@@ -70,22 +73,22 @@ export default function TodoPage() {
     });
   };
 
-  const handleToggle = (id: number, completed: boolean) => {
-    toggleMutation.mutate({ id, completed: !completed });
+  const handleToggle = (id: number, title: string, completed: boolean) => {
+    toggleMutation.mutate({ local_id: id, title, completed: !completed });
   };
 
   const handleDelete = (id: number) => {
     deleteMutation.mutate(id);
   };
 
-  const handleStartEditing = (todo: TodoItem) => {
-    setEditingId(todo.id!);
+  const handleStartEditing = (todo: LocalTodo) => {
+    setEditingId(todo.local_id!);
     setEditText(todo.title);
   };
 
   const handleSaveEdit = (id: number) => {
     if (editText.trim()) {
-      updateMutation.mutate({ id, title: editText.trim() });
+      updateMutation.mutate({ local_id: id, title: editText.trim() });
     } else {
       setEditingId(null);
     }
@@ -167,17 +170,17 @@ export default function TodoPage() {
           ) : (
             <ul className="divide-y divide-gray-200">
               {filteredTodos.map((todo) => (
-                <li key={todo.id} className="p-4 hover:bg-gray-50">
+                <li key={todo.local_id} className="p-4 hover:bg-gray-50">
                   <div className="flex items-center">
                     <input
                       type="checkbox"
                       checked={todo.completed}
-                      onChange={() => handleToggle(todo.id!, todo.completed)}
+                      onChange={() => handleToggle(todo.local_id!, todo.title, todo.completed)}
                       disabled={toggleMutation.isPending}
                       className="h-5 w-5 shrink-0 text-indigo-600 rounded focus:ring-indigo-500 disabled:opacity-50"
                     />
                     <div className="ml-3 w-[calc(100%-2rem)]">
-                      {editingId === todo.id ? (
+                      {editingId === todo.local_id ? (
                         <div className="flex items-center gap-2">
                           <input
                             type="text"
@@ -187,7 +190,7 @@ export default function TodoPage() {
                             autoFocus
                           />
                           <button
-                            onClick={() => handleSaveEdit(todo.id!)}
+                            onClick={() => handleSaveEdit(todo.local_id!)}
                             className="shrink-0 text-green-600 hover:text-green-800 p-1"
                             disabled={updateMutation.isPending}
                           >
@@ -222,7 +225,7 @@ export default function TodoPage() {
                               <Pencil className="h-4 w-4" />
                             </button>
                             <button
-                              onClick={() => handleDelete(todo.id!)}
+                              onClick={() => handleDelete(todo.local_id!)}
                               className="text-sm text-red-600 hover:text-red-800"
                               disabled={deleteMutation.isPending}
                             >
@@ -248,7 +251,7 @@ export default function TodoPage() {
             {todos.some(todo => todo.completed) && (
               <button
                 onClick={() => {
-                  const completedIds = todos.filter(t => t.completed).map(t => t.id!);
+                  const completedIds = todos.filter(t => t.completed).map(t => t.local_id!);
                   completedIds.forEach(id => deleteMutation.mutate(id));
                 }}
                 className="text-indigo-600 hover:text-indigo-800"
