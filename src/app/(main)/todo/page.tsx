@@ -1,23 +1,68 @@
 'use client';
 
 import { useState } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import {Check, Loader2, Pencil, Plus, Trash2, X} from 'lucide-react';
-import { addTodo, deleteTodo, getTodos, updateTodo } from "@/services/todoService";
-import {GetTodo} from "@/schemas/todo";
-import {APIResponse} from "@/lib/axios";
+import {useMutation, UseMutationResult, useQuery, useQueryClient} from '@tanstack/react-query';
+import {Check, Cloud, CloudCheck, Loader2, Pencil, Plus, Trash2, X} from 'lucide-react';
+import {addTodo, deleteTodo, getTodos, syncTodos, updateTodo} from "@/services/todoService";
+import {CreateTodo, createTodoSchema, GetTodo} from "@/schemas/todo";
+import {APIError, APIResponse} from "@/lib/axios";
 import {LocalTodo} from "@/services/db";
+import {zodResolver} from "@hookform/resolvers/zod";
+import {useForm} from "react-hook-form";
+import {Form} from "@/components/ui/form";
+import {toast} from "sonner";
+import {AxiosError} from "axios";
+import {Button} from "@/components/ui/button";
+import {format} from "date-fns";
 
-// interface TodoItem {
-//   id?: number;
-//   title: string;
-//   completed: boolean;
-//   createdAt: Date;
-//   updatedAt: Date;
-// }
+const AddTodoForm = ({addMutation}: {addMutation: UseMutationResult<LocalTodo, Error, CreateTodo>}) => {
+  const form = useForm<CreateTodo>({
+    resolver: zodResolver(createTodoSchema),
+    defaultValues: {
+      title: ""
+    }
+  })
+
+  const handleSubmit = form.handleSubmit(async (data) => {
+    try {
+      await addMutation.mutateAsync(data)
+      toast.success("Todo added successfully")
+      form.reset()
+    } catch(e) {
+      const err = e as Error
+      toast.error("Failed to add todo", {
+        description: err.message
+      })
+    }
+  })
+
+  const title = form.watch("title")
+
+  return (
+    <Form {...form}>
+      <form className="relative" onSubmit={handleSubmit}>
+        <input
+          {...form.register("title")}
+          className="pl-4 pr-17 py-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          placeholder="Add a new todo..."
+        />
+        <button
+          type="submit"
+          className="absolute right-0 top-1/2 -translate-y-1/2 px-4 py-2 text-muted-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 flex items-center gap-2"
+          disabled={addMutation.isPending || !title.trim()}
+        >
+          {addMutation.isPending ? (
+            <Loader2 className="h-4 w-4 animate-spin"/>
+          ) : (
+            <Plus className="h-4 w-4"/>
+          )}
+        </button>
+      </form>
+    </Form>
+  )
+}
 
 export default function TodoPage() {
-  const [newTodo, setNewTodo] = useState('');
   const [filter, setFilter] = useState<'all' | 'active' | 'completed'>('all');
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editText, setEditText] = useState('');
@@ -25,17 +70,24 @@ export default function TodoPage() {
   const queryClient = useQueryClient();
 
   // Fetch todos
-  const { data: todos = [], isLoading } = useQuery({
+  const {data: todos = [], isLoading} = useQuery({
     queryKey: ['todos'],
     queryFn: getTodos,
   });
 
+  const syncMutation = useMutation({
+    mutationFn: syncTodos,
+    onSuccess: () => {
+      queryClient.invalidateQueries({queryKey: ['todos']});
+    }
+  });
+
   // Add to do mutation
-  const addMutation = useMutation({
+  const addMutation = useMutation<LocalTodo, Error, CreateTodo>({
     mutationFn: addTodo,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['todos'] });
-      setNewTodo('');
+      queryClient.invalidateQueries({queryKey: ['todos']});
+      syncMutation.mutate();
     },
   });
 
@@ -43,7 +95,8 @@ export default function TodoPage() {
   const toggleMutation = useMutation({
     mutationFn: updateTodo,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['todos'] });
+      queryClient.invalidateQueries({queryKey: ['todos']});
+      syncMutation.mutate();
     },
   });
 
@@ -52,6 +105,7 @@ export default function TodoPage() {
     mutationFn: deleteTodo,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['todos'] });
+      syncMutation.mutate();
     },
   });
 
@@ -61,24 +115,29 @@ export default function TodoPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['todos'] });
       setEditingId(null);
+      syncMutation.mutate();
     },
   });
 
-  const handleAddTodo = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newTodo.trim()) return;
-
-    addMutation.mutate({
-      title: newTodo.trim()
-    });
-  };
+  // const handleAddTodo = (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   if (!newTodo.trim()) return;
+  //
+  //   addMutation.mutate({
+  //     title: newTodo.trim()
+  //   });
+  // };
 
   const handleToggle = (id: number, title: string, completed: boolean) => {
     toggleMutation.mutate({ local_id: id, title, completed: !completed });
   };
 
   const handleDelete = (id: number) => {
-    deleteMutation.mutate(id);
+    deleteMutation.mutate(id, {
+      onSuccess: () => {
+        toast.success("Todo deleted successfully");
+      }
+    });
   };
 
   const handleStartEditing = (todo: LocalTodo) => {
@@ -88,7 +147,11 @@ export default function TodoPage() {
 
   const handleSaveEdit = (id: number) => {
     if (editText.trim()) {
-      updateMutation.mutate({ local_id: id, title: editText.trim() });
+      updateMutation.mutate({ local_id: id, title: editText.trim() }, {
+        onSuccess: () => {
+          toast.success("Todo updated successfully");
+        }
+      });
     } else {
       setEditingId(null);
     }
@@ -116,28 +179,22 @@ export default function TodoPage() {
         <h1 className="text-3xl font-bold text-center text-gray-800 mb-8">Todo App</h1>
 
         {/* Add To do Form */}
-        <form onSubmit={handleAddTodo} className="mb-8 bg-white p-6 rounded-lg shadow">
-          <div className="relative">
-            <input
-              type="text"
-              value={newTodo}
-              onChange={(e) => setNewTodo(e.target.value)}
-              className="pl-4 pr-17 py-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              placeholder="Add a new todo..."
-            />
-            <button
-              type="submit"
-              className="absolute right-0 top-1/2 -translate-y-1/2 px-4 py-2 text-muted-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 flex items-center gap-2"
-              disabled={addMutation.isPending || !newTodo.trim()}
-            >
-              {addMutation.isPending ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Plus className="h-4 w-4" />
-              )}
-            </button>
+        <div className="mb-8 bg-white p-6 rounded-lg shadow">
+          <AddTodoForm addMutation={addMutation}/>
+          <div className={"mt-2"}>
+            <Button size={"sm"} variant={"link"} className={"text-muted-foreground"} disabled={syncMutation.isPending}  onClick={() => syncMutation.mutate()}>
+              {
+                syncMutation.isPending ? <>
+                  <Loader2 />
+                  Syncing...
+                </> : <>
+                  <CloudCheck />
+                  Last sync {format(localStorage?.getItem("lastSync") || "", "yyyy-MM-dd HH:mm:ss")}
+                </>
+              }
+            </Button>
           </div>
-        </form>
+        </div>
 
         {/* To do List */}
         <div className="bg-white rounded-lg shadow overflow-hidden">

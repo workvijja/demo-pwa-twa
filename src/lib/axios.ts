@@ -52,7 +52,7 @@ api.interceptors.response.use(
     if (process.env.NODE_ENV === "development") {
       console.log(`[API RESPONSE]`, response);
       if (Array.isArray(response.data.data)) {
-        console.table(response.data.data)
+        console.table([...response.data.data])
       }
     }
     return response;

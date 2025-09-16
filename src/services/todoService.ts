@@ -12,7 +12,11 @@ const now = () => new Date();
 
 const handleDelete = async (item: LocalTodo) => {
   if (item.server_id) {
-    await api.delete(`/api/v1/public/todos/${item.server_id}`);
+    await api.delete(`/api/v1/public/todos`, {
+      data: {
+        todolist_id: item.server_id
+      }
+    });
   }
   await db.todos.delete(item.local_id!);
 };
@@ -75,6 +79,38 @@ const syncWithServer = async () => {
       });
     }
   }
+
+  try {
+    const n = now().toISOString()
+
+    const { data: {data: serverTodos} } = await api.get<APIResponse<GetTodo[]>>("/api/v1/public/todos");
+    const serverTodoIds = serverTodos.map(({id}) => id);
+    const localTodos = await db.todos.where('server_id').anyOf(serverTodoIds).toArray();
+    const mergedTodos: LocalTodo[] = serverTodos.map(serverTodo => {
+      const localTodo = localTodos.find(todo => todo.server_id === serverTodo.id) || {};
+      const {id: server_id, ...restServerTodo} = serverTodo
+      return {
+        ...localTodo,
+        server_id,
+        ...restServerTodo,
+        sync_status: "synced",
+        last_sync_at: now(),
+        last_error: undefined,
+      }
+    })
+    await db.todos.bulkPut(mergedTodos)
+
+    const deletedTodos = await api.get<APIResponse<GetTodo[]>>("/api/v1/public/todos/deleted", {
+      params: {
+        since: localStorage.getItem("lastSync")
+      }
+    });
+    await db.todos.bulkDelete(deletedTodos.data.data.map(({id}) => id));
+
+    localStorage.setItem("lastSync", n);
+  } catch (err) {
+    console.error("Failed to sync todos:", err);
+  }
 };
 
 /* ----------------------------- Public API ---------------------------- */
@@ -85,72 +121,9 @@ if (typeof window !== "undefined") {
 }
 
 export const getTodos = async (): Promise<LocalTodo[]> => {
-  if (isOnline()) {
-    try {
-      const n = now().toISOString()
-      const { data: {data: serverTodos} } = await api.get<APIResponse<GetTodo[]>>("/api/v1/public/todos");
-
-      const serverTodoIds = serverTodos.map(({id}) => id);
-      const localTodos = await db.todos.where('server_id').anyOf(serverTodoIds).toArray();
-
-      const mergedTodos: LocalTodo[] = serverTodos.map(serverTodo => {
-        const localTodo = localTodos.find(todo => todo.server_id === serverTodo.id);
-        const {id: server_id, ...restServerTodo} = serverTodo
-        if (localTodo) {
-          return {
-            ...localTodo,
-            ...restServerTodo,
-            sync_status: "synced",
-            last_sync_at: now(),
-            last_error: undefined,
-          }
-        }
-
-        return {
-          server_id,
-          ...restServerTodo,
-          sync_status: "synced",
-          last_sync_at: now(),
-          last_error: undefined,
-        }
-      })
-
-      await db.todos.bulkPut(mergedTodos)
-
-      localStorage.setItem("lastSync", n);
-    } catch (err) {
-      console.error("Failed to sync todos:", err);
-    }
-  }
-
   return db.todos.orderBy('updated_at').reverse().toArray().then(todos => todos.filter(todo => !todo.deleted_at));
 };
-//
-// export const getTodo = async (id: number | string) => {
-//   const isTemp = typeof id === "string" && id.startsWith("temp_");
-//
-//   if (isTemp) return db.todos.get(id);
-//
-//   if (isOnline()) {
-//     try {
-//       const { data } = await api.get<APIResponse<GetTodo>>(`/api/v1/public/todos/${id}`);
-//       if (data.data) {
-//         await db.todos.put({
-//           ...data.data,
-//           syncStatus: "synced" as SyncStatus,
-//           serverId: data.data.id,
-//           lastSyncAt: now(),
-//         });
-//         return data.data;
-//       }
-//     } catch (err) {
-//       console.error(`Failed to fetch todo ${id}:`, err);
-//     }
-//   }
-//
-//   return db.todos.get(Number(id));
-// };
-//
+
 export const addTodo = async (todoData: CreateTodo): Promise<LocalTodo> => {
   const n = now()
   const newTodo: LocalTodo = {
@@ -163,8 +136,6 @@ export const addTodo = async (todoData: CreateTodo): Promise<LocalTodo> => {
   };
 
   const local_id = await db.todos.add(newTodo);
-
-  if (isOnline()) await syncWithServer();
 
   return { ...newTodo, local_id };
 };
@@ -180,8 +151,6 @@ export const updateTodo = async (data: UpdateTodo & {local_id: number}): Promise
     updated_at: now(),
     sync_status: "pending",
   });
-
-  if (isOnline()) await syncWithServer();
 };
 
 export const deleteTodo = async (local_id: number): Promise<void> => {
@@ -197,10 +166,8 @@ export const deleteTodo = async (local_id: number): Promise<void> => {
       sync_status: "pending",
     });
   }
+};
 
+export const syncTodos = async (): Promise<void> => {
   if (isOnline()) await syncWithServer();
 };
-//
-// export const syncTodos = async (): Promise<void> => {
-//   if (isOnline()) await syncWithServer();
-// };
