@@ -1,6 +1,9 @@
 import {loginSchema, LoginUser, registerSchema} from "@/schemas/auth";
 import api from "@/lib/axios";
 import type {APIResponse} from "@/lib/axios";
+import NetworkStatus from "@/lib/networkStatus";
+
+const isOnline = () => NetworkStatus.status;
 
 type LoginData = {
   access_token: string;
@@ -8,6 +11,7 @@ type LoginData = {
 }
 
 export const login = async (data: unknown) => {
+  if (!isOnline()) throw new Error("No internet connection");
   const {data: input, error} = loginSchema.safeParse(data);
 
   if (error) {
@@ -21,6 +25,7 @@ export const login = async (data: unknown) => {
 }
 
 export const register = async (data: unknown) => {
+  if (!isOnline()) throw new Error("No internet connection");
   const {data: input, error} = registerSchema.safeParse(data);
 
   if (error) {

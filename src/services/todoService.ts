@@ -1,12 +1,11 @@
-import { db } from "./db";
-import type { LocalTodo } from "./db";
-import { CreateTodo, GetTodo, Todo, UpdateTodo } from "@/schemas/todo";
-import api, { APIResponse } from "@/lib/axios";
+import type {LocalTodo} from "./db";
+import {db} from "./db";
+import {CreateTodo, GetTodo, UpdateTodo} from "@/schemas/todo";
+import api, {APIResponse} from "@/lib/axios";
 import {AxiosError} from "axios";
-// import { v4 as uuidv4 } from "uuid";
+import NetworkStatus from "@/lib/networkStatus";
 
-const isOnline = () => typeof navigator !== "undefined" && navigator.onLine;
-// const generateTempId = () => `temp_${uuidv4()}`;
+const isOnline = () => NetworkStatus.status;
 const now = () => new Date();
 
 /* ----------------------------- Core Sync Logic ---------------------------- */

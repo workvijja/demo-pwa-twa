@@ -46,7 +46,6 @@ const CustomVibrate = ({className}: {className?: string}) => {
         onSubmit={(e) => {
           e.preventDefault();
           const t = e.currentTarget.pattern.value;
-          console.log(t.split(',').map(Number))
           vibrate(t.split(',').map(Number))
         }}
       >

@@ -21,7 +21,6 @@ function emitChange() {
 function subscribeTokenChanges(callback: () => void) {
   listeners.add(callback)
   const handler = (e: StorageEvent) => {
-    console.log("storage event", e);
     if (e.key === "token") {
       emitChange()
     }
@@ -37,7 +36,6 @@ function subscribeTokenChanges(callback: () => void) {
 export const getToken = () => {
   try {
     const [,payload] = parseJWT(localStorage.getItem("token") || "");
-    console.log(payload)
     return payload as {UserID: string}
   } catch(e) {
     return null
