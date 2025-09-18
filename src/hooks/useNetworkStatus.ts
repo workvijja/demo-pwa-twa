@@ -1,17 +1,16 @@
-import {useEffect, useRef} from "react";
+import {useEffect, useState} from "react";
 import NetworkStatus from "@/lib/networkStatus";
-import {toast} from "sonner";
 
-export default function useNetworkStatus(callback?: (isOnline: boolean) => void) {
-  const isOnlineRef = useRef(NetworkStatus.status);
+export default function useNetworkStatus(callback?: (status: boolean) => void) {
+  const [isOnline, setIsOnline] = useState(true);
   useEffect(() => {
-    const unsubscribe = NetworkStatus.subscribe((isOnline) => {
-      if (isOnlineRef.current !== isOnline) {
-        isOnlineRef.current = isOnline;
-        toast.info(isOnline ? "You're online now" : "You're offline now")
-      }
-      callback?.(isOnline)
+    setIsOnline(NetworkStatus.status);
+    const unsubscribe = NetworkStatus.subscribe((status) => {
+      setIsOnline(status);
+      callback?.(status)
     })
     return () => unsubscribe();
-  }, []);
+  }, [isOnline, callback]);
+
+  return isOnline;
 }

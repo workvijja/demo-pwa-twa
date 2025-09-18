@@ -4,7 +4,6 @@ import useAuth from "@/hooks/auth/useAuth";
 import {useForm, useFormContext} from "react-hook-form";
 import {registerSchema, RegisterUser} from "@/schemas/auth";
 import {zodResolver} from "@hookform/resolvers/zod";
-import {useState} from "react";
 import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
 import {
   Drawer,
@@ -12,8 +11,7 @@ import {
   DrawerDescription,
   DrawerFooter,
   DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger
+  DrawerTitle
 } from "@/components/ui/drawer";
 import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
 import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
@@ -100,8 +98,10 @@ const AvatarInput = () => {
   )
 }
 
-export default function RegisterForm({trigger}: { trigger: React.ReactNode }) {
-  const [isOpen, setIsOpen] = useState(false)
+export default function RegisterForm({isOpen, setIsOpenAction}: {
+  isOpen: boolean,
+  setIsOpenAction: (value: boolean) => void
+}) {
   const {register, registerStatus} = useAuth();
 
   const form = useForm<RegisterUser>({
@@ -118,63 +118,62 @@ export default function RegisterForm({trigger}: { trigger: React.ReactNode }) {
     register(data, {
       onSuccess: () => {
         form.reset()
-        setIsOpen(false)
+        setIsOpenAction(false)
       }
     })
   }
 
   return (
-    <Drawer open={isOpen} onOpenChange={setIsOpen}>
-      <DrawerTrigger asChild>
-        {trigger}
-      </DrawerTrigger>
-      <DrawerContent>
+    <Drawer open={isOpen} onOpenChange={setIsOpenAction}>
+      <DrawerContent className="h-full max-h-[75dvh]">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="mx-auto w-full max-w-sm min-h-[75dvh] flex flex-col">
-            <DrawerHeader>
-              <DrawerTitle>Register</DrawerTitle>
-              <DrawerDescription>
-                fill your information
-              </DrawerDescription>
-            </DrawerHeader>
-            <div className="grid gap-4 p-4">
-              <AvatarInput/>
-              <FormField
-                name={"username"}
-                render={({field}) => (
-                  <FormItem>
-                    <FormLabel>Username</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Guest User" {...field}/>
-                    </FormControl>
-                    <FormMessage/>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                name={"email"}
-                render={({field}) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input type="email" placeholder="guest@example.com" {...field}/>
-                    </FormControl>
-                    <FormMessage/>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                name={"password"}
-                render={({field}) => (
-                  <FormItem>
-                    <FormLabel>Password</FormLabel>
-                    <FormControl>
-                      <Input type="password" {...field}/>
-                    </FormControl>
-                    <FormMessage/>
-                  </FormItem>
-                )}
-              />
+          <form onSubmit={form.handleSubmit(onSubmit)} className="mx-auto w-full h-full max-w-sm flex flex-col">
+            <div className="overflow-y-auto">
+              <DrawerHeader>
+                <DrawerTitle>Register</DrawerTitle>
+                <DrawerDescription>
+                  fill your information
+                </DrawerDescription>
+              </DrawerHeader>
+              <div className="grid gap-4 p-4">
+                <AvatarInput/>
+                <FormField
+                  name={"username"}
+                  render={({field}) => (
+                    <FormItem>
+                      <FormLabel>Username</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Guest User" {...field}/>
+                      </FormControl>
+                      <FormMessage/>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  name={"email"}
+                  render={({field}) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input type="email" placeholder="guest@example.com" {...field}/>
+                      </FormControl>
+                      <FormMessage/>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  name={"password"}
+                  render={({field}) => (
+                    <FormItem>
+                      <FormLabel>Password</FormLabel>
+                      <FormControl>
+                        <Input type="password" {...field}/>
+                      </FormControl>
+                      <FormMessage/>
+                    </FormItem>
+                  )}
+                />
+              </div>
             </div>
             <DrawerFooter>
               <Button type="submit" disabled={registerStatus === "pending"}>

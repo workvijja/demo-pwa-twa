@@ -20,7 +20,7 @@ class NetworkStatus {
 
     this.pingUrl = pingUrl;
     this.interval = interval;
-    this.isOnline = navigator.onLine;
+    this.isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
     this.listeners = new Set();
     this.timer = null;
 

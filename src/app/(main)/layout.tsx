@@ -6,6 +6,7 @@ import {UpdateNotifier} from "@/components/utils/updateNotifier";
 import QueryProvider from "@/provider/queryProvider";
 import Header from "@/app/(main)/_feature/header";
 import useNetworkStatus from "@/hooks/useNetworkStatus";
+import {toast} from "sonner";
 
 const componentAllowed = <T extends object>(allowed: boolean, Comp: React.FC<T>) =>
   allowed ? Comp : ({children}: {children: React.ReactNode}) => <>{children}</>;
@@ -22,7 +23,9 @@ const CheckDeviceWrapper = componentAllowed(
 );
 
 export default function MainLayout({children}: {children: React.ReactNode}) {
-  useNetworkStatus();
+  useNetworkStatus((isOnline) => {
+    toast.info(isOnline ? "You're online now" : "You're offline now")
+  });
 
   return (
     <QueryProvider>

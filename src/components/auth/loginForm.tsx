@@ -19,8 +19,10 @@ import {Button} from "@/components/ui/button";
 import {Loader2} from "lucide-react";
 import {Input} from "@/components/ui/input";
 
-export default function LoginForm({trigger}: { trigger: React.ReactNode }) {
-  const [isOpen, setIsOpen] = useState(false)
+export default function LoginForm({isOpen, setIsOpenAction}: {
+  isOpen: boolean,
+  setIsOpenAction: (value: boolean) => void
+}) {
   const {login, loginStatus} = useAuth();
 
   const form = useForm<LoginUser>({
@@ -35,50 +37,49 @@ export default function LoginForm({trigger}: { trigger: React.ReactNode }) {
     login(data, {
       onSuccess: () => {
         form.reset()
-        setIsOpen(false)
+        setIsOpenAction(false)
       }
     })
   }
 
   return (
-    <Drawer open={isOpen} onOpenChange={setIsOpen}>
-      <DrawerTrigger asChild>
-        {trigger}
-      </DrawerTrigger>
-      <DrawerContent>
+    <Drawer open={isOpen} onOpenChange={setIsOpenAction}>
+      <DrawerContent className="h-full max-h-[75dvh]">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="mx-auto w-full max-w-sm min-h-[75dvh] flex flex-col">
-            <DrawerHeader>
-              <DrawerTitle>Login</DrawerTitle>
-              <DrawerDescription>
-                fill your information
-              </DrawerDescription>
-            </DrawerHeader>
-            <div className="grid gap-4 p-4">
-              <FormField
-                name={"email"}
-                render={({field}) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input type="email" placeholder="guest@example.com" {...field}/>
-                    </FormControl>
-                    <FormMessage/>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                name={"password"}
-                render={({field}) => (
-                  <FormItem>
-                    <FormLabel>Password</FormLabel>
-                    <FormControl>
-                      <Input type="password" {...field}/>
-                    </FormControl>
-                    <FormMessage/>
-                  </FormItem>
-                )}
-              />
+          <form onSubmit={form.handleSubmit(onSubmit)} className="mx-auto w-full h-full max-w-sm flex flex-col">
+            <div className="overflow-y-auto">
+              <DrawerHeader>
+                <DrawerTitle>Login</DrawerTitle>
+                <DrawerDescription>
+                  fill your information
+                </DrawerDescription>
+              </DrawerHeader>
+              <div className="grid gap-4 p-4">
+                <FormField
+                  name={"email"}
+                  render={({field}) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input type="email" placeholder="guest@example.com" {...field}/>
+                      </FormControl>
+                      <FormMessage/>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  name={"password"}
+                  render={({field}) => (
+                    <FormItem>
+                      <FormLabel>Password</FormLabel>
+                      <FormControl>
+                        <Input type="password" {...field}/>
+                      </FormControl>
+                      <FormMessage/>
+                    </FormItem>
+                  )}
+                />
+              </div>
             </div>
             <DrawerFooter>
               <Button type="submit" disabled={loginStatus === "pending"}>

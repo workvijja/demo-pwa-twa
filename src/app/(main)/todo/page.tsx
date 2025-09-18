@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import {useEffect, useState} from 'react';
 import {useMutation, UseMutationResult, useQuery, useQueryClient} from '@tanstack/react-query';
 import {Check, Cloud, CloudCheck, Loader2, Pencil, Plus, Trash2, X} from 'lucide-react';
 import {addTodo, deleteTodo, getTodos, syncTodos, updateTodo} from "@/services/todoService";
@@ -14,6 +14,7 @@ import {toast} from "sonner";
 import {AxiosError} from "axios";
 import {Button} from "@/components/ui/button";
 import {format} from "date-fns";
+import {z} from "zod";
 
 const AddTodoForm = ({addMutation}: {addMutation: UseMutationResult<LocalTodo, Error, CreateTodo>}) => {
   const form = useForm<CreateTodo>({
@@ -60,6 +61,15 @@ const AddTodoForm = ({addMutation}: {addMutation: UseMutationResult<LocalTodo, E
       </form>
     </Form>
   )
+}
+
+const dateSchema = z.coerce.date().transform((date) => format(date, "yyyy-MM-dd HH:mm:ss"))
+const formatDate = (dateString: unknown) => {
+  const {data: date, error} = dateSchema.safeParse(dateString)
+
+  if (error) return null
+
+  return date
 }
 
 export default function TodoPage() {
@@ -119,14 +129,9 @@ export default function TodoPage() {
     },
   });
 
-  // const handleAddTodo = (e: React.FormEvent) => {
-  //   e.preventDefault();
-  //   if (!newTodo.trim()) return;
-  //
-  //   addMutation.mutate({
-  //     title: newTodo.trim()
-  //   });
-  // };
+  useEffect(() => {
+    syncMutation.mutate();
+  }, []);
 
   const handleToggle = (id: number, title: string, completed: boolean) => {
     toggleMutation.mutate({ local_id: id, title, completed: !completed });
@@ -189,7 +194,7 @@ export default function TodoPage() {
                   Syncing...
                 </> : <>
                   <CloudCheck />
-                  Last sync {format(localStorage?.getItem("lastSync") || "", "yyyy-MM-dd HH:mm:ss")}
+                  Last sync {formatDate(localStorage?.getItem("lastSync")) || "N/A"}
                 </>
               }
             </Button>
